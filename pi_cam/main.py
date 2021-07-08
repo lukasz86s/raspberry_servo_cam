@@ -2,7 +2,8 @@ from tkinter import *
 import cv2
 import PIL.Image, PIL.ImageTk
 import time
-from servo_pwm import MoveCamera
+from external_devices import MoveCamera, Sprinkler
+from threading import Thread
 import sys
 
 class Application(Frame):
@@ -15,6 +16,7 @@ class Application(Frame):
         self.master.protocol("WM_DELETE_WINDOW", self.Quit)
         
         self.move_cam = MoveCamera()
+        self.sprinkler = Sprinkler()
         #self.move_cam.start_pwm()
 
         self.vid = MyVideoCapture(video_source)
@@ -29,6 +31,9 @@ class Application(Frame):
         self.destroy()
         self.master.destroy()
         sys.exit()
+        
+    def start_spray(self):
+        Thread(target=self.sprinkler.spray).start()
         
     def update(self):
         # Get a frame from the video source
@@ -49,6 +54,9 @@ class Application(Frame):
         for name, position in zip(self.buttons_name, self.buttons_name.values()):
             self.buttons_instance[name] = Button(self, text=name)
             self.buttons_instance[name].grid(column=position[1]+self.offset, row=position[0])
+        self.buttons_instance["podlej"] = Button(self, text="podlej")
+        self.buttons_instance["podlej"].grid(column=0, row=1)
+        self.buttons_instance["podlej"]["command"] = self.start_spray
         # move to the up loop
         self.buttons_instance["left"]["command"] = (lambda : self.move_cam.add_to_pwm(direction="left"))
         self.buttons_instance["right"]["command"] = (lambda : self.move_cam.add_to_pwm(direction="right"))
