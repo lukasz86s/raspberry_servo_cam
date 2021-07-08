@@ -35,10 +35,6 @@ class Application(Frame):
         #print(self.move_cam.dc_horizontal)
         #print(self.move_cam.dc_vertical)
  
-        if(self.move_cam.counter >0):
-            self.move_cam.counter -= 1 
-        if(self.move_cam.counter == 0):
-            self.move_cam.stop_servo()
             
         ret, frame = self.vid.get_frame()
         self.photo = None
