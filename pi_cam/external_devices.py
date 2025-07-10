@@ -1,7 +1,70 @@
 from RPi import GPIO as gpio
 import pigpio
 import time
+import requests
 
+
+pi = pigpio.pi('0.0.0.0', 6555)
+
+class Sprinkler():
+    def __init__(self, pump_pin=20, valve_pin=21 ):
+        self.gpio = pi
+        self.pump_pin = pump_pin
+        self.valve_pin = valve_pin
+        self.pump_time = 3
+        self.valve_time = 1
+    
+    @property
+    def pump_time(self):
+        return self._pump_time
+        
+    @pump_time.setter
+    def pump_time(self, val):
+        self._pump_time = val
+
+    @property
+    def valve_time(self):
+        return self._valve_time
+        
+    @valve_time.setter
+    def valve_time(self, val):
+        self._valve_time = val
+        
+    def init_gpio(self):
+        self.gpio.set_mode(self.pump_pin, pigpio.OUTPUT)
+        self.gpio.write(self.pump_pin, 0)
+        
+        self.gpio.set_mode(self.valve_pin, pigpio.OUTPUT)
+        self.gpio.write(self.valve_pin, 0)
+    
+    def pump_ON(self):
+        self.gpio.write(self.pump_pin, 1)
+        
+    def pump_OFF(self):
+        self.gpio.write(self.pump_pin, 0)
+        
+    def valve_ON(self):
+        self.gpio.write(self.valve_pin, 1)
+        
+    def valve_OFF(self):
+        self.gpio.write(self.valve_pin, 0)
+    
+    def spray_with_valve(self):
+        self.pump_ON()
+        time.sleep(self.pump_time)
+        self.pump_OFF()
+        time.sleep(2)
+        self.valve_ON()
+        time.sleep(self.valve_time)
+        self.valve_OFF()
+    
+    def spray(self):
+        self.pump_ON()
+        time.sleep(self.pump_time)
+        self.pump_OFF()
+        
+
+        
 
 class MoveCamera():
     BOTH = 3
@@ -15,7 +78,7 @@ class MoveCamera():
         self.servo_horizontal = servo_horizontal  # set pin for horizontal move
         self.servo_vertical = servo_vertical # set pin for vertical move
         #create instance to controll pwm
-        self.pwm = pigpio.pi('0.0.0.0', 6555)
+        self.pwm = pi
         self.start_pwm()     
 
         
@@ -54,8 +117,15 @@ class MoveCamera():
         else:
             self.update_pwm(2)
 
-        
-
+class TogleLight:
+    
+    def __init__(self, address):
+        self.address = address
+    
+    def togle_light(self):
+        return requests.get(self.address+"/?m=1&o=1")
+    
+    
 if __name__ == ("__main__"):
     import time
     pwm = MoveCamera()
